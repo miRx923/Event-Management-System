@@ -17,6 +17,10 @@ public class HomeController : Controller
         };
     }
 
+    public IActionResult Index()
+    {
+        return View();
+    }
     public async Task<IActionResult> Recommendations()
     {
         var user = new { name = "John", preferences = new[] { "music", "sports" } };
