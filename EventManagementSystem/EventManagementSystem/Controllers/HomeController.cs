@@ -49,4 +49,32 @@ public class HomeController : Controller
         ViewBag.Recommendations = recommendations.recommendations;
         return View();
     }
+
+    [HttpPost]
+    public IActionResult AddEvent(string eventName)
+    {
+        //// Example user
+        //string userName = "John Doe";
+
+        //// Check if user exists in dictionary
+        //if (!UserEvents.ContainsKey(userName))
+        //{
+        //    UserEvents[userName] = new List<string>();
+        //}
+
+        //// Add the event to the user's list if not already added
+        //if (!UserEvents[userName].Contains(eventName))
+        //{
+        //    UserEvents[userName].Add(eventName);
+        //}
+
+        //// Feedback to user
+        //ViewBag.Message = $"Event '{eventName}' added successfully!";
+
+        //// Refresh recommendations (or redirect back to recommendations)
+        //ViewBag.Recommendations = new[] { "Rock Concert", "Football Match", "Cooking Class" }; // Example
+        //ViewBag.UserEvents = UserEvents[userName];
+
+        return View("Recommendations");
+    }
 }
