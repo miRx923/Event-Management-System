@@ -1,11 +1,52 @@
 ﻿@{
-    ViewData["Title"] = "Event Recommendations";
+    ViewData["Title"] = "Recommended Events";
 }
 
 <h2>Recommended Events</h2>
-<ul>
-    @foreach (var recommendation in ViewBag.Recommendations)
-    {
-        <li>@recommendation</li>
+
+@if (ViewBag.Recommendations != null)
+{
+    <div class="event-container">
+        @foreach (var recommendation in ViewBag.Recommendations)
+        {
+            <div class="event-card">
+                <h3>@recommendation</h3>
+                <form method="post" action="/Home/AddEvent">
+                    <input type="hidden" name="eventName" value="@recommendation" />
+                    <button type="submit" class="btn btn-primary">Add to My Events</button>
+                </form>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <p>No recommendations found.</p>
+}
+
+<style>
+    .event-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
     }
-</ul>
+    .event-card {
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        padding: 1rem;
+        width: 250px;
+        text-align: center;
+    }
+    .btn {
+        margin-top: 0.5rem;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        cursor: pointer;
+        border-radius: 5px;
+    }
+    .btn:hover {
+        background-color: #0056b3;
+    }
+</style>
