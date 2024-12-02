@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\miros\\Desktop\\Event-Management-System\\Backend\\CSharpMVC\\EventManagementSystem\\EventManagementSystem\\EventManagementSystem.csproj": {}
+    "C:\\Users\\miros\\Source\\Repos\\apiszadanie\\Backend\\CSharpMVC\\EventManagementSystem\\EventManagementSystem\\EventManagementSystem.csproj": {}
   },
   "projects": {
-    "C:\\Users\\miros\\Desktop\\Event-Management-System\\Backend\\CSharpMVC\\EventManagementSystem\\EventManagementSystem\\EventManagementSystem.csproj": {
+    "C:\\Users\\miros\\Source\\Repos\\apiszadanie\\Backend\\CSharpMVC\\EventManagementSystem\\EventManagementSystem\\EventManagementSystem.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\miros\\Desktop\\Event-Management-System\\Backend\\CSharpMVC\\EventManagementSystem\\EventManagementSystem\\EventManagementSystem.csproj",
+        "projectUniqueName": "C:\\Users\\miros\\Source\\Repos\\apiszadanie\\Backend\\CSharpMVC\\EventManagementSystem\\EventManagementSystem\\EventManagementSystem.csproj",
         "projectName": "EventManagementSystem",
-        "projectPath": "C:\\Users\\miros\\Desktop\\Event-Management-System\\Backend\\CSharpMVC\\EventManagementSystem\\EventManagementSystem\\EventManagementSystem.csproj",
+        "projectPath": "C:\\Users\\miros\\Source\\Repos\\apiszadanie\\Backend\\CSharpMVC\\EventManagementSystem\\EventManagementSystem\\EventManagementSystem.csproj",
         "packagesPath": "C:\\Users\\miros\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\miros\\Desktop\\Event-Management-System\\Backend\\CSharpMVC\\EventManagementSystem\\EventManagementSystem\\obj\\",
+        "outputPath": "C:\\Users\\miros\\Source\\Repos\\apiszadanie\\Backend\\CSharpMVC\\EventManagementSystem\\EventManagementSystem\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\miros\\AppData\\Roaming\\NuGet\\NuGet.Config",
