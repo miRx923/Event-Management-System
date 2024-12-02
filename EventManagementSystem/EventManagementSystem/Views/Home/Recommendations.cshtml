@@ -1,0 +1,11 @@
+﻿@{
+    ViewData["Title"] = "Event Recommendations";
+}
+
+<h2>Recommended Events</h2>
+<ul>
+    @foreach (var recommendation in ViewBag.Recommendations)
+    {
+        <li>@recommendation</li>
+    }
+</ul>
