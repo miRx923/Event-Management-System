@@ -21,6 +21,7 @@ public class HomeController : Controller
     {
         return View();
     }
+
     public async Task<IActionResult> Recommendations()
     {
         var user = new { name = "John", preferences = new[] { "music", "sports" } };
