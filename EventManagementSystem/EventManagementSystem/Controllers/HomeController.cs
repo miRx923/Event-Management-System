@@ -50,6 +50,8 @@ public class HomeController : Controller
         return View();
     }
 
+    public IActionResult MyEvents() { return View(); }
+
     [HttpPost]
     public IActionResult AddEvent(string eventName)
     {
