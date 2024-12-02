@@ -15,7 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Page Include="Views\Home\loginpage.cshtml.cs" />
+    <Page Include="Views\Home\Loginpage.cshtml.cs" />
   </ItemGroup>
 
 </Project>
