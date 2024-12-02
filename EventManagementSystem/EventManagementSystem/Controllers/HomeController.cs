@@ -54,7 +54,12 @@ public class HomeController : Controller
         return View(); 
     }
 
-    public IActionResult LoginPage()
+    public IActionResult LogInPage()
+    {
+        return View();
+    }
+
+    public IActionResult SignUpPage()
     {
         return View();
     }
