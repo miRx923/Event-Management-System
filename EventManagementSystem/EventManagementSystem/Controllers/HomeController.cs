@@ -54,7 +54,7 @@ public class HomeController : Controller
         return View(); 
     }
 
-    public IActionResult LogInPage()
+    public IActionResult loginpage()
     {
         return View();
     }
