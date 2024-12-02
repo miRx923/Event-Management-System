@@ -50,7 +50,14 @@ public class HomeController : Controller
         return View();
     }
 
-    public IActionResult MyEvents() { return View(); }
+    public IActionResult MyEvents() { 
+        return View(); 
+    }
+
+    public IActionResult LoginPage()
+    {
+        return View();
+    }
 
     [HttpPost]
     public IActionResult AddEvent(string eventName)
