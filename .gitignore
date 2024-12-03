@@ -486,3 +486,5 @@ $RECYCLE.BIN/
 # Ignore all build outputs
 [Bb]in/
 [Oo]bj/
+
+.vscode/
