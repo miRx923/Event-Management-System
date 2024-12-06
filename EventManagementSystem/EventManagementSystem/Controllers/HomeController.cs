@@ -2,11 +2,15 @@ using System;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using EventManagementSystem.Models;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using EventManagementSystem.Models;
+using Microsoft.AspNetCore.Http;
 
 public class HomeController : Controller
 {
+    private readonly EventRepository _eventRepository = new EventRepository();
     private readonly HttpClient _httpClient;
 
     public HomeController()
@@ -19,20 +23,51 @@ public class HomeController : Controller
 
     public IActionResult Index()
     {
-        return View();
+        List<Event> events = _eventRepository.GetAllEvents();
+        return View(events);
+    }
+
+    [HttpPost]
+    public IActionResult CreateEvent(Event newEvent)
+    {
+        _eventRepository.CreateEvent(newEvent);
+        return RedirectToAction("Index");
+    }
+
+    [HttpPost]
+    public IActionResult UpdateEvent(Event updatedEvent)
+    {
+        _eventRepository.UpdateEvent(updatedEvent);
+        return RedirectToAction("Index");
+    }
+
+    [HttpPost]
+    public IActionResult DeleteEvent(int id)
+    {
+        _eventRepository.DeleteEvent(id);
+        return RedirectToAction("Index");
     }
 
     public async Task<IActionResult> Recommendations()
     {
-        var user = new { name = "John", preferences = new[] { "music", "sports" } };
-        var events = new[]
+        var repository = new EventRepository();
+        int userId = 1; // Example user ID, replace with actual logged-in user ID
+        var userPreferences = repository.GetUserPreferences(userId); // Fetch user preferences
+        var allEvents = repository.GetAllEvents(); // Fetch all events
+        var myEvents = repository.GetMyEvents(userId); // Fetch "My Events"
+
+        var user = new
         {
-            new { name = "Rock Concert", tags = new[] { "music", "live" } },
-            new { name = "Football Match", tags = new[] { "sports", "outdoor" } },
-            new { name = "Cooking Class", tags = new[] { "cooking", "indoor" } }
+            name = "John", // Replace with actual username
+            preferences = userPreferences
         };
 
-        var inputData = new { user, events };
+        var inputData = new
+        {
+            user,
+            events = allEvents.Select(e => new { name = e.Name, tags = e.Tags.Split(',') })
+        };
+
         var jsonInput = JsonConvert.SerializeObject(inputData);
 
         var content = new StringContent(jsonInput, Encoding.UTF8, "application/json");
@@ -44,14 +79,22 @@ public class HomeController : Controller
         }
 
         var jsonResponse = await response.Content.ReadAsStringAsync();
-        var recommendations = JsonConvert.DeserializeObject<dynamic>(jsonResponse);
+        Console.WriteLine($"Response from Flask API: {jsonResponse}");
 
-        ViewBag.Recommendations = recommendations.recommendations;
+        var recommendedEventNames = JsonConvert.DeserializeObject<dynamic>(jsonResponse).recommendations.ToObject<List<string>>();
+
+        // Match the recommended names with the full event details
+        var recommendedEvents = allEvents
+            .Where(e => recommendedEventNames.Contains(e.Name))
+            .ToList();
+
+        // Pass the IDs of "My Events" to the view for comparison
+        var myEventIds = myEvents.Select(e => e.Id).ToList();
+
+        ViewBag.Recommendations = recommendedEvents; // Pass recommendations to the view
+        ViewBag.MyEventIds = myEventIds; // Pass "My Events" IDs to the view
+
         return View();
-    }
-
-    public IActionResult MyEvents() { 
-        return View(); 
     }
 
     public IActionResult Loginpage()
@@ -64,31 +107,32 @@ public class HomeController : Controller
         return View();
     }
 
+
     [HttpPost]
-    public IActionResult AddEvent(string eventName)
+    public IActionResult AddToMyEvents(int eventId)
     {
-        //// Example user
-        //string userName = "John Doe";
+        int userId = 1; // Example user ID, replace with actual user context
+        var repository = new EventRepository();
+        repository.AddToMyEvents(userId, eventId);
 
-        //// Check if user exists in dictionary
-        //if (!UserEvents.ContainsKey(userName))
-        //{
-        //    UserEvents[userName] = new List<string>();
-        //}
+        return RedirectToAction("Recommendations");
+    }
 
-        //// Add the event to the user's list if not already added
-        //if (!UserEvents[userName].Contains(eventName))
-        //{
-        //    UserEvents[userName].Add(eventName);
-        //}
+    public IActionResult MyEvents()
+    {
+        int userId = 1; // Example user ID, replace with actual user context
+        var repository = new EventRepository();
+        var myEvents = repository.GetMyEvents(userId);
 
-        //// Feedback to user
-        //ViewBag.Message = $"Event '{eventName}' added successfully!";
+        return View(myEvents);
+    }
 
-        //// Refresh recommendations (or redirect back to recommendations)
-        //ViewBag.Recommendations = new[] { "Rock Concert", "Football Match", "Cooking Class" }; // Example
-        //ViewBag.UserEvents = UserEvents[userName];
-
-        return View("Recommendations");
+    [HttpPost]
+    public IActionResult RemoveFromMyEvents(int eventId)
+    {
+        int userId = 1; // Replace with the actual logged-in user ID
+        var repository = new EventRepository();
+        repository.RemoveFromMyEvents(userId, eventId); // Call the repository method to delete the event
+        return RedirectToAction("MyEvents"); // Redirect back to "My Events"
     }
 }

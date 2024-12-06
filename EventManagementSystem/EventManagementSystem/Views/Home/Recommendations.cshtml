@@ -1,20 +1,35 @@
 ﻿@{
     ViewData["Title"] = "Recommended Events";
+    var recommendations = ViewBag.Recommendations as List<Event>; // Get the recommendations from ViewBag
+    var myEventIds = ViewBag.MyEventIds as List<int>; // Get the IDs of "My Events" from ViewBag
 }
 
 <h2>Recommended Events</h2>
 
-@if (ViewBag.Recommendations != null)
+@if (recommendations != null && recommendations.Count > 0)
 {
     <div class="event-container">
-        @foreach (var recommendation in ViewBag.Recommendations)
+        @foreach (var recommendation in recommendations)
         {
             <div class="event-card">
-                <h3>@recommendation</h3>
-                <form method="post" action="/Home/AddEvent">
-                    <input type="hidden" name="eventName" value="@recommendation" />
-                    <button type="submit" class="btn btn-primary">Add to My Events</button>
-                </form>
+                <h3>@recommendation.Name</h3>
+                <div class="tag-container">
+                    @foreach (var tag in recommendation.Tags.Split(','))
+                    {
+                        <span class="tag">@tag.Trim()</span>
+                    }
+                </div>
+                @if (myEventIds != null && myEventIds.Contains(recommendation.Id))
+                {
+                    <p><strong>Already added to My Events</strong></p>
+                }
+                else
+                {
+                    <form method="post" action="/Home/AddToMyEvents">
+                        <input type="hidden" name="eventId" value="@recommendation.Id" />
+                        <button type="submit" class="btn btn-primary">Add to My Events</button>
+                    </form>
+                }
             </div>
         }
     </div>
@@ -30,6 +45,7 @@ else
         flex-wrap: wrap;
         gap: 1rem;
     }
+
     .event-card {
         border: 1px solid #ccc;
         border-radius: 5px;
@@ -37,6 +53,26 @@ else
         width: 250px;
         text-align: center;
     }
+
+    .tag-container {
+        margin-top: 0.5rem;
+        margin-bottom: 0.5rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        justify-content: center;
+    }
+
+    .tag {
+        background-color: #f0f0f0;
+        color: #333;
+        padding: 0.25rem 0.5rem;
+        border-radius: 15px;
+        font-size: 0.875rem;
+        border: 1px solid #ddd;
+        display: inline-block;
+    }
+
     .btn {
         margin-top: 0.5rem;
         background-color: #007bff;
@@ -46,7 +82,8 @@ else
         cursor: pointer;
         border-radius: 5px;
     }
-    .btn:hover {
-        background-color: #0056b3;
-    }
+
+        .btn:hover {
+            background-color: #0056b3;
+        }
 </style>
