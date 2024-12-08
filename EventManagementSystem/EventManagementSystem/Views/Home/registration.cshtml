@@ -14,22 +14,34 @@
     <div class="container d-flex justify-content-center align-items-center" style="min-height: 100vh;">
         <div class="card p-4 shadow-lg" style="width: 500px;">
             <h2 class="text-center mb-4">Register</h2>
+            @if (ViewBag.ErrorMessage != null)
+            {
+                <div class="alert alert-danger text-center">@ViewBag.ErrorMessage</div>
+            }
             <form asp-action="Register" asp-controller="Home" method="post">
                 <div class="mb-3">
                     <label for="username" class="form-label">Username</label>
-                    <input type="text" id="username" name="Username" class="form-control" required>
+                    <input type="text" id="username" name="username" class="form-control" value="@ViewBag.Username" required>
                 </div>
                 <div class="mb-3">
                     <label for="email" class="form-label">Email</label>
-                    <input type="email" id="email" name="Email" class="form-control" required>
+                    <input type="email" id="email" name="email" class="form-control" value="@ViewBag.Email" required>
                 </div>
                 <div class="mb-3">
                     <label for="password" class="form-label">Password</label>
-                    <input type="password" id="password" name="Password" class="form-control" required>
+                    <input type="password" id="password" name="password" class="form-control" required>
+                    @if (ViewBag.ErrorMessage == "Passwords do not match.")
+                    {
+                        <span class="text-danger">Passwords do not match</span>
+                    }
                 </div>
                 <div class="mb-3">
                     <label for="confirmPassword" class="form-label">Confirm Password</label>
-                    <input type="password" id="confirmPassword" class="form-control" required>
+                    <input type="password" id="confirmPassword" name="confirmPassword" class="form-control" required>
+                    @if (ViewBag.ErrorMessage == "Passwords do not match.")
+                    {
+                        <span class="text-danger">Passwords do not match</span>
+                    }
                 </div>
                 <div class="d-grid gap-2">
                     <button type="submit" class="btn btn-primary">Register</button>
@@ -38,6 +50,8 @@
             </form>
         </div>
     </div>
+
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

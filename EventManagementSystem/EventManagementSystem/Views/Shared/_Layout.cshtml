@@ -1,4 +1,6 @@
-﻿<!DOCTYPE html>
+﻿@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -26,11 +28,26 @@
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="MyEvents">My Events</a>
                         </li>
                     </ul>
-                    <ul class="navbar-nav ms-auto"> <!-- Trieda ms-auto na zarovnanie doprava -->
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Loginpage">Log in/Sign up</a>
-                        </li>
+                    <ul class="navbar-nav ms-auto">
+                        @if (HttpContextAccessor.HttpContext.Session?.GetInt32("UserId") != null)
+                        {
+                            <li class="nav-item">
+                                <form method="post" asp-action="Logout" asp-controller="Home">
+                                    <button type="submit" class="btn btn-outline-danger">Log Out</button>
+                                </form>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" href="/Home/LoginPage">Login</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="/Home/Registration">Register</a>
+                            </li>
+                        }
                     </ul>
+
                 </div>
             </div>
         </nav>

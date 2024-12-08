@@ -7,6 +7,10 @@ using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using EventManagementSystem.Models;
 using Microsoft.AspNetCore.Http;
+using Org.BouncyCastle.Crypto.Generators;
+using Microsoft.AspNetCore.Identity;
+using BCrypt.Net;
+
 
 public class HomeController : Controller
 {
@@ -23,8 +27,131 @@ public class HomeController : Controller
 
     public IActionResult Index()
     {
+        if (!HttpContext.Session.TryGetValue("UserId", out _))
+        {
+            return RedirectToAction("LoginPage"); // Redirect to login if not logged in
+        }
+
         List<Event> events = _eventRepository.GetAllEvents();
         return View(events);
+    }
+
+    [HttpPost]
+    public IActionResult Register(string username, string email, string password, string confirmPassword)
+    {
+        // Validate required fields
+        if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
+        {
+            ViewBag.ErrorMessage = "All fields are required.";
+            ViewBag.Username = username;
+            ViewBag.Email = email;
+            return View("Registration");
+        }
+
+        // Validate password match
+        if (password != confirmPassword)
+        {
+            ViewBag.ErrorMessage = "Passwords do not match.";
+            ViewBag.Username = username;
+            ViewBag.Email = email;
+            return View("Registration");
+        }
+
+        // Check if username or email already exists
+        var existingUserByUsername = _eventRepository.GetUserByUsername(username);
+        var existingUserByEmail = _eventRepository.GetUserByEmail(email);
+
+        if (existingUserByUsername != null)
+        {
+            ViewBag.ErrorMessage = "Username already exists.";
+            ViewBag.Username = username;
+            ViewBag.Email = email;
+            return View("Registration");
+        }
+
+        if (existingUserByEmail != null)
+        {
+            ViewBag.ErrorMessage = "Email already exists.";
+            ViewBag.Username = username;
+            ViewBag.Email = email;
+            return View("Registration");
+        }
+
+        // Hash the password
+        var passwordHash = BCrypt.Net.BCrypt.HashPassword(password);
+
+        var user = new User
+        {
+            Username = username,
+            Password = passwordHash,
+            Email = email
+        };
+
+        try
+        {
+            _eventRepository.RegisterUser(user);
+
+            // Fetch the user ID for session and redirect to Preferences
+            var registeredUser = _eventRepository.GetUserByUsername(username);
+            if (registeredUser != null)
+            {
+                HttpContext.Session.SetInt32("UserId", registeredUser.Id);
+                HttpContext.Session.SetString("Username", registeredUser.Username);
+            }
+
+            return RedirectToAction("SelectPreferences"); // Redirect to preferences page
+        }
+        catch (Exception ex)
+        {
+            ViewBag.ErrorMessage = "Registration failed due to an unexpected error.";
+            return View("Registration");
+        }
+    }
+
+
+    [HttpPost]
+    public IActionResult Login(string username, string password)
+    {
+        // Fetch user by username
+        var user = _eventRepository.GetUserByUsername(username);
+        if (user != null && BCrypt.Net.BCrypt.Verify(password, user.Password))
+        {
+            // If credentials match, store user information in session
+            HttpContext.Session.SetInt32("UserId", user.Id);
+            HttpContext.Session.SetString("Username", user.Username);
+
+            return RedirectToAction("Index"); // Redirect to the main page
+        }
+
+        // Show error message if login fails
+        ViewBag.ErrorMessage = "Invalid username or password.";
+        return View("LoginPage");
+    }
+
+    public IActionResult Logout()
+    {
+        HttpContext.Session.Clear(); // Clear session
+        return RedirectToAction("LoginPage");
+    }
+
+    public IActionResult SelectPreferences()
+    {
+        var availableTags = _eventRepository.GetAllTags(); // Fetch all tags from the database
+        return View(availableTags);
+    }
+
+    [HttpPost]
+    public IActionResult SavePreferences(List<string> selectedTags)
+    {
+        int? userId = HttpContext.Session.GetInt32("UserId");
+
+        if (userId == null)
+        {
+            return RedirectToAction("LoginPage");
+        }
+
+        _eventRepository.SaveUserPreferences(userId.Value, selectedTags);
+        return RedirectToAction("Index");
     }
 
     [HttpPost]
@@ -50,15 +177,22 @@ public class HomeController : Controller
 
     public async Task<IActionResult> Recommendations()
     {
+        if (!HttpContext.Session.TryGetValue("UserId", out _))
+        {
+            ViewBag.ErrorMessage = "You need to log in to access recommendations.";
+            return View(); // Render the view with a message
+        }
+
+        // Proceed with fetching recommendations as before
         var repository = new EventRepository();
-        int userId = 1; // Example user ID, replace with actual logged-in user ID
-        var userPreferences = repository.GetUserPreferences(userId); // Fetch user preferences
-        var allEvents = repository.GetAllEvents(); // Fetch all events
-        var myEvents = repository.GetMyEvents(userId); // Fetch "My Events"
+        int userId = HttpContext.Session.GetInt32("UserId").Value;
+        var userPreferences = repository.GetUserPreferences(userId);
+        var allEvents = repository.GetAllEvents();
+        var myEvents = repository.GetMyEvents(userId);
 
         var user = new
         {
-            name = "John", // Replace with actual username
+            name = HttpContext.Session.GetString("Username"), // Get actual username
             preferences = userPreferences
         };
 
@@ -79,22 +213,87 @@ public class HomeController : Controller
         }
 
         var jsonResponse = await response.Content.ReadAsStringAsync();
-        Console.WriteLine($"Response from Flask API: {jsonResponse}");
-
         var recommendedEventNames = JsonConvert.DeserializeObject<dynamic>(jsonResponse).recommendations.ToObject<List<string>>();
 
-        // Match the recommended names with the full event details
         var recommendedEvents = allEvents
             .Where(e => recommendedEventNames.Contains(e.Name))
             .ToList();
 
-        // Pass the IDs of "My Events" to the view for comparison
         var myEventIds = myEvents.Select(e => e.Id).ToList();
 
-        ViewBag.Recommendations = recommendedEvents; // Pass recommendations to the view
-        ViewBag.MyEventIds = myEventIds; // Pass "My Events" IDs to the view
+        ViewBag.Recommendations = recommendedEvents;
+        ViewBag.MyEventIds = myEventIds;
 
         return View();
+    }
+
+    public IActionResult MyEvents()
+    {
+        if (!HttpContext.Session.TryGetValue("UserId", out _))
+        {
+            ViewBag.ErrorMessage = "You need to log in to access your events.";
+            return View(new List<Event>()); // Render empty list with message
+        }
+
+        int userId = HttpContext.Session.GetInt32("UserId").Value;
+        var repository = new EventRepository();
+        var myEvents = repository.GetMyEvents(userId);
+
+        return View(myEvents);
+    }
+
+
+    [HttpPost]
+    public IActionResult AddToMyEvents(int eventId)
+    {
+        int? userId = HttpContext.Session.GetInt32("UserId");
+
+        if (userId == null)
+        {
+            // Redirect to login if no user is logged in
+            return RedirectToAction("LoginPage");
+        }
+
+        var repository = new EventRepository();
+        try
+        {
+            repository.AddToMyEvents(userId.Value, eventId);
+            return RedirectToAction("Recommendations");
+        }
+        catch (Exception ex)
+        {
+            // Log the error for debugging
+            Console.WriteLine($"Error adding event to My Events: {ex.Message}");
+            ViewBag.ErrorMessage = "An error occurred while adding the event. Please try again.";
+            return RedirectToAction("Recommendations");
+        }
+    }
+
+
+    [HttpPost]
+    public IActionResult RemoveFromMyEvents(int eventId)
+    {
+        int? userId = HttpContext.Session.GetInt32("UserId");
+
+        if (userId == null)
+        {
+            // Redirect to login if no user is logged in
+            return RedirectToAction("LoginPage");
+        }
+
+        try
+        {
+            var repository = new EventRepository();
+            repository.RemoveFromMyEvents(userId.Value, eventId); // Call repository method to remove the event
+            return RedirectToAction("MyEvents"); // Redirect back to My Events page
+        }
+        catch (Exception ex)
+        {
+            // Log the error for debugging
+            Console.WriteLine($"Error removing event from My Events: {ex.Message}");
+            ViewBag.ErrorMessage = "An error occurred while removing the event. Please try again.";
+            return RedirectToAction("MyEvents");
+        }
     }
 
     public IActionResult Loginpage()
@@ -105,34 +304,5 @@ public class HomeController : Controller
     public IActionResult Registration()
     {
         return View();
-    }
-
-
-    [HttpPost]
-    public IActionResult AddToMyEvents(int eventId)
-    {
-        int userId = 1; // Example user ID, replace with actual user context
-        var repository = new EventRepository();
-        repository.AddToMyEvents(userId, eventId);
-
-        return RedirectToAction("Recommendations");
-    }
-
-    public IActionResult MyEvents()
-    {
-        int userId = 1; // Example user ID, replace with actual user context
-        var repository = new EventRepository();
-        var myEvents = repository.GetMyEvents(userId);
-
-        return View(myEvents);
-    }
-
-    [HttpPost]
-    public IActionResult RemoveFromMyEvents(int eventId)
-    {
-        int userId = 1; // Replace with the actual logged-in user ID
-        var repository = new EventRepository();
-        repository.RemoveFromMyEvents(userId, eventId); // Call the repository method to delete the event
-        return RedirectToAction("MyEvents"); // Redirect back to "My Events"
     }
 }

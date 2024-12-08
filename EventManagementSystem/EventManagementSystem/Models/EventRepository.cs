@@ -7,6 +7,118 @@ public class EventRepository
 
     private static List<Event> _events = new List<Event>();
 
+    public void RegisterUser(User user)
+    {
+        using (SqlConnection connection = new SqlConnection(_connectionString))
+        {
+            connection.Open();
+            string query = "INSERT INTO Users (Username, Password, Email, Preferences) VALUES (@Username, @Password, @Email, @Preferences)";
+            using (SqlCommand command = new SqlCommand(query, connection))
+            {
+                command.Parameters.AddWithValue("@Username", user.Username);
+                command.Parameters.AddWithValue("@Password", user.Password);
+                command.Parameters.AddWithValue("@Email", user.Email);
+                command.Parameters.AddWithValue("@Preferences", (object)user.Preferences ?? DBNull.Value);
+                command.ExecuteNonQuery();
+            }
+        }
+    }
+
+    public User GetUserByUsername(string username)
+    {
+        using (SqlConnection connection = new SqlConnection(_connectionString))
+        {
+            connection.Open();
+            string query = "SELECT Id, Username, Password, Email, Preferences FROM Users WHERE Username = @Username";
+            using (SqlCommand command = new SqlCommand(query, connection))
+            {
+                command.Parameters.AddWithValue("@Username", username);
+                using (SqlDataReader reader = command.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        return new User
+                        {
+                            Id = reader.GetInt32(0),
+                            Username = reader.GetString(1),
+                            Password = reader.GetString(2), // Ensure Password is hashed
+                            Email = reader.GetString(3),
+                            Preferences = reader.IsDBNull(4) ? null : reader.GetString(4)
+                        };
+                    }
+                }
+            }
+        }
+        return null; // Return null if the user is not found
+    }
+
+    public User GetUserByEmail(string email)
+    {
+        using (SqlConnection connection = new SqlConnection(_connectionString))
+        {
+            connection.Open();
+            string query = "SELECT Id, Username, Password, Email, Preferences FROM Users WHERE Email = @Email";
+            using (SqlCommand command = new SqlCommand(query, connection))
+            {
+                command.Parameters.AddWithValue("@Email", email);
+                using (SqlDataReader reader = command.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        return new User
+                        {
+                            Id = reader.GetInt32(0),
+                            Username = reader.GetString(1),
+                            Password = reader.GetString(2),
+                            Email = reader.GetString(3),
+                            Preferences = reader.IsDBNull(4) ? null : reader.GetString(4)
+                        };
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    public void SaveUserPreferences(int userId, List<string> preferences)
+    {
+        using (SqlConnection connection = new SqlConnection(_connectionString))
+        {
+            connection.Open();
+            string prefString = string.Join(",", preferences);
+
+            string query = "UPDATE Users SET Preferences = @Preferences WHERE Id = @UserId";
+            using (SqlCommand command = new SqlCommand(query, connection))
+            {
+                command.Parameters.AddWithValue("@Preferences", prefString);
+                command.Parameters.AddWithValue("@UserId", userId);
+                command.ExecuteNonQuery();
+            }
+        }
+    }
+
+    public List<string> GetAllTags()
+    {
+        var tags = new List<string>();
+        using (SqlConnection connection = new SqlConnection(_connectionString))
+        {
+            connection.Open();
+            string query = "SELECT DISTINCT Tags FROM Events";
+            using (SqlCommand command = new SqlCommand(query, connection))
+            {
+                using (SqlDataReader reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        var eventTags = reader.GetString(0).Split(',').Select(t => t.Trim());
+                        tags.AddRange(eventTags);
+                    }
+                }
+            }
+        }
+        return tags.Distinct().ToList();
+    }
+
     public List<Event> GetAllEvents()
     {
         _events.Clear();
@@ -114,6 +226,27 @@ public class EventRepository
         using (SqlConnection connection = new SqlConnection(_connectionString))
         {
             connection.Open();
+
+            // Check if UserId and EventId exist
+            string userCheckQuery = "SELECT COUNT(*) FROM Users WHERE Id = @UserId";
+            string eventCheckQuery = "SELECT COUNT(*) FROM Events WHERE Id = @EventId";
+
+            using (SqlCommand userCommand = new SqlCommand(userCheckQuery, connection))
+            using (SqlCommand eventCommand = new SqlCommand(eventCheckQuery, connection))
+            {
+                userCommand.Parameters.AddWithValue("@UserId", userId);
+                eventCommand.Parameters.AddWithValue("@EventId", eventId);
+
+                int userExists = (int)userCommand.ExecuteScalar();
+                int eventExists = (int)eventCommand.ExecuteScalar();
+
+                if (userExists == 0 || eventExists == 0)
+                {
+                    throw new Exception("Invalid UserId or EventId.");
+                }
+            }
+
+            // Insert into MyEvents
             string query = "INSERT INTO MyEvents (UserId, EventId) VALUES (@UserId, @EventId)";
             using (SqlCommand command = new SqlCommand(query, connection))
             {

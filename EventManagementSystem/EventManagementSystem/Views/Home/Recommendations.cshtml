@@ -1,12 +1,16 @@
 ﻿@{
     ViewData["Title"] = "Recommended Events";
-    var recommendations = ViewBag.Recommendations as List<Event>; // Get the recommendations from ViewBag
-    var myEventIds = ViewBag.MyEventIds as List<int>; // Get the IDs of "My Events" from ViewBag
+    var recommendations = ViewBag.Recommendations as List<Event>;
+    var myEventIds = ViewBag.MyEventIds as List<int>;
 }
 
 <h2>Recommended Events</h2>
 
-@if (recommendations != null && recommendations.Count > 0)
+@if (ViewBag.ErrorMessage != null)
+{
+    <p class="text-danger">@ViewBag.ErrorMessage</p>
+}
+else if (recommendations != null && recommendations.Count > 0)
 {
     <div class="event-container">
         @foreach (var recommendation in recommendations)
@@ -38,6 +42,7 @@ else
 {
     <p>No recommendations found.</p>
 }
+
 
 <style>
     .event-container {
