@@ -1,0 +1,218 @@
+@{
+    ViewData["Title"] = "User Profile";
+    var username = ViewData["Username"] ?? "John Doe"; // Replace with actual user data
+    var email = ViewData["Email"] ?? "johndoe@example.com"; // Replace with actual user data
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Profile</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #d3d3d3; /* Light gray background */
+            font-family: Arial, sans-serif;
+        }
+        .header-bar {
+            background-color: #007bff; /* Blue header */
+            height: 60px;
+            width: 100%;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+        }
+        .home-button {
+            background-color: #fff;
+            color: #007bff;
+            border: none;
+            border-radius: 5px;
+            padding: 5px 15px;
+            font-size: 16px;
+            text-decoration: none;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .home-button:hover {
+            background-color: #e0e0e0;
+        }
+        .sidebar {
+            background-color: #34495e; /* Dark gray sidebar */
+            width: 200px;
+            height: 100vh; /* Full height */
+            position: fixed;
+            top: 60px;
+            left: 0;
+        }
+        .content {
+            margin-left: 220px; /* Adjust for sidebar width */
+            padding: 20px;
+            position: relative;
+        }
+        .profile-card {
+            background-color: #757575; /* Gray card */
+            color: white;
+            border-radius: 10px;
+            padding: 20px;
+            max-width: 600px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            position: absolute;
+            top: 20px; /* 20px from the top */
+            left: 20px; /* 20px from the sidebar */
+        }
+        .profile-card h2 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        .profile-card p {
+            font-size: 18px;
+            margin: 0;
+        }
+        .button-row {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        .button-row .btn {
+            flex: 1;
+            margin: 0 5px;
+        }
+        .additional-button-row {
+            display: flex;
+            margin-top: 10px;
+        }
+        .additional-button-row .btn {
+            flex: 1;
+            margin: 0 5px;
+        }
+        /* Overlay Styles */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: none;
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            color: white;
+        }
+        .overlay-content {
+            background-color: #34495e;
+            padding: 30px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 800px;
+            position: relative;
+            text-align: center;
+        }
+        .overlay-buttons {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr); /* 5 buttons per row */
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .close-button {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background-color: #ff6b6b;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .close-button:hover {
+            background-color: #e74c3c;
+        }
+        .overlay-buttons .btn {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px;
+            font-size: 14px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .overlay-buttons .btn:hover {
+            background-color: #0056b3;
+        }
+    </style>
+    <script>
+        // Function to open the overlay
+        function openOverlay() {
+            document.getElementById("overlay").style.display = "flex";
+        }
+
+        // Function to close the overlay
+        function closeOverlay() {
+            document.getElementById("overlay").style.display = "none";
+        }
+    </script>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header-bar">
+        <a href="/" class="home-button">Home</a>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar"></div>
+
+    <!-- Content -->
+    <div class="content">
+        <div class="profile-card">
+            <h2>Profile</h2>
+            <p><strong>Name:</strong> @username</p>
+            <p><strong>Email:</strong> @email</p>
+            
+            <!-- Four Buttons at the Bottom -->
+            <div class="button-row">
+                <button class="btn btn-secondary">Tag 1</button>
+                <button class="btn btn-secondary">Tag 2</button>
+                <button class="btn btn-secondary">Tag 3</button>
+                <button class="btn btn-secondary">Tag 4</button>
+            </div>
+            
+            <!-- Additional Button Row -->
+            <div class="additional-button-row">
+                <button class="btn btn-secondary" onclick="openOverlay()">Add a tag</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overlay -->
+    <div id="overlay" class="overlay">
+        <div class="overlay-content">
+            <h2>Overlay Content</h2>
+            <div class="overlay-buttons">
+                <button class="btn">Button 1</button>
+                <button class="btn">Button 2</button>
+                <button class="btn">Button 3</button>
+                <button class="btn">Button 4</button>
+                <button class="btn">Button 5</button>
+                <button class="btn">Button 6</button>
+                <button class="btn">Button 7</button>
+                <button class="btn">Button 8</button>
+                <button class="btn">Button 9</button>
+                <button class="btn">Button 10</button>
+            </div>
+            <button class="close-button" onclick="closeOverlay()">Close</button>
+        </div>
+    </div>
+</body>
+</html>
