@@ -1,7 +1,7 @@
 @{
     ViewData["Title"] = "User Profile";
-    var username = ViewData["Username"] ?? "John Doe"; // Replace with actual user data
-    var email = ViewData["Email"] ?? "johndoe@example.com"; // Replace with actual user data
+    var username = ViewBag.Username ?? "Guest"; // Use ViewBag to fetch the username
+    var email = "example@example.com"; // Replace with actual email or fetch dynamically
 }
 
 <!DOCTYPE html>
@@ -116,6 +116,7 @@
             max-width: 800px;
             position: relative;
             text-align: center;
+            padding-bottom: 80px; /* Extra space for the close button */
         }
         .overlay-buttons {
             display: grid;
@@ -190,7 +191,7 @@
             
             <!-- Additional Button Row -->
             <div class="additional-button-row">
-                <button class="btn btn-secondary" onclick="openOverlay()">Add a tag</button>
+                <button class="btn btn-secondary" onclick="openOverlay()">+</button>
             </div>
         </div>
     </div>
@@ -200,16 +201,16 @@
         <div class="overlay-content">
             <h2>Overlay Content</h2>
             <div class="overlay-buttons">
-                <button class="btn">Button 1</button>
-                <button class="btn">Button 2</button>
-                <button class="btn">Button 3</button>
-                <button class="btn">Button 4</button>
-                <button class="btn">Button 5</button>
-                <button class="btn">Button 6</button>
-                <button class="btn">Button 7</button>
-                <button class="btn">Button 8</button>
-                <button class="btn">Button 9</button>
-                <button class="btn">Button 10</button>
+                <button class="btn">Tag 1</button>
+                <button class="btn">Tag 2</button>
+                <button class="btn">Tag 3</button>
+                <button class="btn">Tag 4</button>
+                <button class="btn">Tag 5</button>
+                <button class="btn">Tag 6</button>
+                <button class="btn">Tag 7</button>
+                <button class="btn">Tag 8</button>
+                <button class="btn">Tag 9</button>
+                <button class="btn">Tag 10</button>
             </div>
             <button class="close-button" onclick="closeOverlay()">Close</button>
         </div>

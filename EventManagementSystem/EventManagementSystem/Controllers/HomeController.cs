@@ -196,6 +196,8 @@ public class HomeController : Controller
             preferences = userPreferences
         };
 
+        ViewBag.Username = user.name;
+
         var inputData = new
         {
             user,
