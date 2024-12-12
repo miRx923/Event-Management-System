@@ -243,6 +243,7 @@ public class HomeController : Controller
         var repository = new EventRepository();
         int userId = HttpContext.Session.GetInt32("UserId").Value;
         var userPreferences = repository.GetUserPreferences(userId);
+        var AllTags = repository.GetAllTags();
 
         var user = new
         {
@@ -262,6 +263,7 @@ public class HomeController : Controller
         }
 
         ViewBag.Preferences = user.preferences;
+        ViewBag.AllPrefernces = AllTags;
         return View();
     }
 

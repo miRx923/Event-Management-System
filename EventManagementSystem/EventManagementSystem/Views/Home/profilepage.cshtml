@@ -2,6 +2,7 @@
     ViewData["Title"] = "User Profile";
     var username = ViewBag.Username ?? "Guest"; // Fetch username from ViewBag
     var email = ViewBag.Email ?? "example@example.com"; // Replace with dynamic email if available
+    var tags = ViewBag.AllPrefernces as List<string> ??  new List<string>();
     var preferences = ViewBag.Preferences as List<string> ?? new List<string>(); // Fetch preferences as a list
 }
 
@@ -166,7 +167,7 @@
 <body>
     <!-- Header -->
     <div class="header-bar">
-        <a href="/Home/Recommendations" class="home-button">Home</a>
+        <a href="/Home/Index" class="home-button">Home</a>
     </div>
 
     <!-- Sidebar -->
@@ -206,11 +207,11 @@
         <div class="overlay-content">
             <h2>Select Preferences</h2>
             <div class="overlay-buttons">
-                @if (preferences.Any())
+                @if (tags.Any())
                 {
-                    foreach (var preference in preferences)
+                    foreach (var tag in tags)
                     {
-                        <button class="btn">@preference</button>
+                        <button class="btn">@tag</button>
                     }
                 }
             </div>
