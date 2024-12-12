@@ -234,6 +234,12 @@ public class HomeController : Controller
 
     public IActionResult ProfilePage()
     {
+        if (!HttpContext.Session.TryGetValue("UserId", out _))
+        {
+            ViewBag.ErrorMessage = "You need to log in to access recommendations.";
+            return View(); // Render the view with a message
+        }
+
         var repository = new EventRepository();
         int userId = HttpContext.Session.GetInt32("UserId").Value;
         var userPreferences = repository.GetUserPreferences(userId);
