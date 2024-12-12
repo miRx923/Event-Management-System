@@ -29,10 +29,10 @@ public class HomeController : Controller
 
     public IActionResult Index()
     {
-        if (!HttpContext.Session.TryGetValue("UserId", out _))
-        {
-            return RedirectToAction("LoginPage"); // Redirect to login if not logged in
-        }
+        //if (!HttpContext.Session.TryGetValue("UserId", out _))
+        //{
+        //    return RedirectToAction("LoginPage"); // Redirect to login if not logged in
+        //}
 
         List<Event> events = _eventRepository.GetAllEvents();
         return View(events);
@@ -114,21 +114,20 @@ public class HomeController : Controller
     [HttpPost]
     public IActionResult Login(string username, string password)
     {
-        // Fetch user by username
         var user = _eventRepository.GetUserByUsername(username);
         if (user != null && BCrypt.Net.BCrypt.Verify(password, user.Password))
         {
-            // If credentials match, store user information in session
             HttpContext.Session.SetInt32("UserId", user.Id);
             HttpContext.Session.SetString("Username", user.Username);
+            HttpContext.Session.SetString("UserRole", user.Role); // Store user role
 
-            return RedirectToAction("Index"); // Redirect to the main page
+            return RedirectToAction("Index");
         }
 
-        // Show error message if login fails
         ViewBag.ErrorMessage = "Invalid username or password.";
         return View("LoginPage");
     }
+
 
     public IActionResult Logout()
     {
@@ -156,25 +155,87 @@ public class HomeController : Controller
         return RedirectToAction("Index");
     }
 
-    [HttpPost]
-    public IActionResult CreateEvent(Event newEvent)
+    public IActionResult EventConfig()
     {
-        _eventRepository.CreateEvent(newEvent);
-        return RedirectToAction("Index");
+        var allTags = _eventRepository.GetAllTags();
+        var events = _eventRepository.GetAllEvents();
+
+        ViewBag.AllTags = allTags.OrderBy(tag => tag).ToList(); // Sort tags alphabetically
+        return View(events);
+    }
+
+
+    [HttpGet]
+    public IActionResult EditEvent(int id)
+    {
+        var eventToEdit = _eventRepository.GetEventById(id);
+        if (eventToEdit == null)
+        {
+            return RedirectToAction("EventConfig");
+        }
+
+        return View(eventToEdit);
     }
 
     [HttpPost]
     public IActionResult UpdateEvent(Event updatedEvent)
     {
         _eventRepository.UpdateEvent(updatedEvent);
-        return RedirectToAction("Index");
+        return RedirectToAction("EventConfig");
+    }
+
+
+    [HttpPost]
+    public IActionResult CreateEvent(Event newEvent)
+    {
+        if (string.IsNullOrWhiteSpace(newEvent.Name) || string.IsNullOrWhiteSpace(newEvent.Tags))
+        {
+            ViewBag.ErrorMessage = "Event Name and Tags are required.";
+            return RedirectToAction("EventConfig");
+        }
+
+        try
+        {
+            _eventRepository.CreateEvent(newEvent);
+            return RedirectToAction("EventConfig");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error adding event: {ex.Message}");
+            ViewBag.ErrorMessage = "An error occurred while adding the event.";
+            return RedirectToAction("EventConfig");
+        }
+    }
+
+
+    [HttpPost]
+    public IActionResult EditEvent(Event updatedEvent)
+    {
+        if (updatedEvent.Id == 0 || string.IsNullOrWhiteSpace(updatedEvent.Name) || string.IsNullOrWhiteSpace(updatedEvent.Tags))
+        {
+            ViewBag.ErrorMessage = "Event ID, Name, and Tags are required for editing.";
+            var events = _eventRepository.GetAllEvents();
+            return View("EventConfig", events);
+        }
+
+        _eventRepository.UpdateEvent(updatedEvent);
+        return RedirectToAction("EventConfig");
     }
 
     [HttpPost]
     public IActionResult DeleteEvent(int id)
     {
-        _eventRepository.DeleteEvent(id);
-        return RedirectToAction("Index");
+        try
+        {
+            _eventRepository.DeleteEvent(id); // Call the updated DeleteEvent method
+            return RedirectToAction("EventConfig"); // Redirect to the EventConfig page
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error deleting event: {ex.Message}");
+            ViewBag.ErrorMessage = "An error occurred while deleting the event.";
+            return RedirectToAction("EventConfig");
+        }
     }
 
     public async Task<IActionResult> Recommendations()
@@ -371,4 +432,17 @@ public class HomeController : Controller
     {
         return View();
     }
+
+    private bool IsAdministrator()
+    {
+        int? userId = HttpContext.Session.GetInt32("UserId");
+        if (userId == null)
+        {
+            return false;
+        }
+
+        var user = _eventRepository.GetUserByUsername(HttpContext.Session.GetString("Username"));
+        return user != null && user.Role == "Administrator";
+    }
+
 }

@@ -30,6 +30,17 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="ProfilePage">Profile</a>
                         </li>
+                            @if (HttpContextAccessor.HttpContext?.Session.GetInt32("UserId") != null)
+                            {
+                                var userRole = HttpContextAccessor.HttpContext?.Session.GetString("UserRole");
+
+                                @if (userRole == "Administrator")
+                                {
+                                    <li class="nav-item">
+                                        <a class="nav-link" asp-controller="Home" asp-action="EventConfig">Manage Events</a>
+                                    </li>
+                                }
+                            }
                     </ul>
                     <ul class="navbar-nav ms-auto">
                         @if (HttpContextAccessor.HttpContext.Session?.GetInt32("UserId") != null)

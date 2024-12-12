@@ -12,13 +12,14 @@ public class EventRepository
         using (SqlConnection connection = new SqlConnection(_connectionString))
         {
             connection.Open();
-            string query = "INSERT INTO Users (Username, Password, Email, Preferences) VALUES (@Username, @Password, @Email, @Preferences)";
+            string query = "INSERT INTO Users (Username, Password, Email, Preferences, Role) VALUES (@Username, @Password, @Email, @Preferences, @Role)";
             using (SqlCommand command = new SqlCommand(query, connection))
             {
                 command.Parameters.AddWithValue("@Username", user.Username);
                 command.Parameters.AddWithValue("@Password", user.Password);
                 command.Parameters.AddWithValue("@Email", user.Email);
                 command.Parameters.AddWithValue("@Preferences", (object)user.Preferences ?? DBNull.Value);
+                command.Parameters.AddWithValue("@Role", user.Role ?? "User"); // Default role is "User"
                 command.ExecuteNonQuery();
             }
         }
@@ -29,7 +30,7 @@ public class EventRepository
         using (SqlConnection connection = new SqlConnection(_connectionString))
         {
             connection.Open();
-            string query = "SELECT Id, Username, Password, Email, Preferences FROM Users WHERE Username = @Username";
+            string query = "SELECT Id, Username, Password, Email, Preferences, Role FROM Users WHERE Username = @Username";
             using (SqlCommand command = new SqlCommand(query, connection))
             {
                 command.Parameters.AddWithValue("@Username", username);
@@ -41,15 +42,16 @@ public class EventRepository
                         {
                             Id = reader.GetInt32(0),
                             Username = reader.GetString(1),
-                            Password = reader.GetString(2), // Ensure Password is hashed
+                            Password = reader.GetString(2),
                             Email = reader.GetString(3),
-                            Preferences = reader.IsDBNull(4) ? null : reader.GetString(4)
+                            Preferences = reader.IsDBNull(4) ? null : reader.GetString(4),
+                            Role = reader.GetString(5) // Fetch the role
                         };
                     }
                 }
             }
         }
-        return null; // Return null if the user is not found
+        return null;
     }
 
     public User GetUserByEmail(string email)
@@ -96,6 +98,34 @@ public class EventRepository
             }
         }
     }
+
+    public List<User> GetAllUsers()
+    {
+        var users = new List<User>();
+        using (SqlConnection connection = new SqlConnection(_connectionString))
+        {
+            connection.Open();
+            string query = "SELECT Id, Username, Email, Role FROM Users";
+            using (SqlCommand command = new SqlCommand(query, connection))
+            {
+                using (SqlDataReader reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        users.Add(new User
+                        {
+                            Id = reader.GetInt32(0),
+                            Username = reader.GetString(1),
+                            Email = reader.GetString(2),
+                            Role = reader.GetString(3)
+                        });
+                    }
+                }
+            }
+        }
+        return users;
+    }
+
 
     public List<string> GetAllTags()
     {
@@ -181,14 +211,25 @@ public class EventRepository
         using (SqlConnection connection = new SqlConnection(_connectionString))
         {
             connection.Open();
-            string query = "DELETE FROM Events WHERE Id = @Id";
-            using (SqlCommand command = new SqlCommand(query, connection))
+
+            // First, delete from MyEvents
+            string deleteFromMyEventsQuery = "DELETE FROM MyEvents WHERE EventId = @EventId";
+            using (SqlCommand myEventsCommand = new SqlCommand(deleteFromMyEventsQuery, connection))
             {
-                command.Parameters.AddWithValue("@Id", eventId);
-                command.ExecuteNonQuery();
+                myEventsCommand.Parameters.AddWithValue("@EventId", eventId);
+                myEventsCommand.ExecuteNonQuery();
+            }
+
+            // Then, delete from Events
+            string deleteFromEventsQuery = "DELETE FROM Events WHERE Id = @EventId";
+            using (SqlCommand eventsCommand = new SqlCommand(deleteFromEventsQuery, connection))
+            {
+                eventsCommand.Parameters.AddWithValue("@EventId", eventId);
+                eventsCommand.ExecuteNonQuery();
             }
         }
     }
+
 
     public List<string> GetUserPreferences(int userId)
     {

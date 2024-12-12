@@ -1,0 +1,300 @@
+﻿@model List<Event>
+@{
+    ViewData["Title"] = "Manage Events";
+    var allTags = ViewBag.AllTags as List<string> ?? new List<string>();
+}
+
+<h2>Manage Events</h2>
+
+<!-- Search Bar and Filtering -->
+<div class="d-flex align-items-center gap-3 mb-3">
+    <input type="text" id="searchBar" class="form-control" style="width: 300px;" placeholder="Search events..." onkeyup="filterEvents()">
+    <div class="d-flex align-items-center gap-2">
+        <span>Filter by:</span>
+        <select id="filterDropdown" class="form-select form-select-sm" style="width: 200px;" onchange="filterByTag()">
+            <option value="" selected>All Tags</option>
+            @foreach (var tag in allTags)
+            {
+                <option value="@tag">@tag</option>
+            }
+        </select>
+    </div>
+    <button class="btn btn-primary" onclick="openAddPopup()">Add New Event</button>
+</div>
+
+<!-- Event List -->
+<div class="event-container" id="eventList">
+    @foreach (var ev in Model)
+    {
+        <div class="event-card">
+            <h3>@ev.Name</h3>
+            <div class="tag-container">
+                @foreach (var tag in ev.Tags.Split(','))
+                {
+                    <span class="tag">@tag.Trim()</span>
+                }
+            </div>
+            <button class="btn btn-warning btn-sm" onclick="openEditPopup(@ev.Id, '@ev.Name', '@ev.Tags')">Edit</button>
+            <form method="post" action="/Home/DeleteEvent" style="display: inline;">
+                <input type="hidden" name="id" value="@ev.Id" />
+                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+            </form>
+
+        </div>
+    }
+</div>
+
+<!-- Edit Popup -->
+<div id="editPopup" class="popup-overlay" style="display: none;">
+    <div class="popup-content">
+        <h3>Edit Event</h3>
+        <form method="post" action="/Home/UpdateEvent" id="editForm">
+            <input type="hidden" id="editEventId" name="Id" />
+            <div class="mb-3">
+                <label for="editEventName" class="form-label">Event Name</label>
+                <input type="text" id="editEventName" name="Name" class="form-control" required />
+            </div>
+            <div class="mb-3">
+                <label for="editEventTags" class="form-label">Tags</label>
+                <div id="tagEditor" class="tag-editor">
+                    <!-- Existing Tags -->
+                    <div id="selectedTags" class="selected-tags"></div>
+
+                    <!-- Dropdown for All Tags -->
+                    <select id="tagDropdown" class="form-select" onchange="addSelectedTag()">
+                        <option value="" disabled selected>Select a tag</option>
+                        @foreach (var tag in allTags.OrderBy(t => t))
+                        {
+                            <option value="@tag">@tag</option>
+                        }
+                    </select>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-success">Save Changes</button>
+            <button type="button" class="btn btn-secondary" onclick="closeEditPopup()">Cancel</button>
+        </form>
+    </div>
+</div>
+
+<!-- Add Popup -->
+<div id="addPopup" class="popup-overlay" style="display: none;">
+    <div class="popup-content">
+        <h3>Add New Event</h3>
+        <form method="post" action="/Home/CreateEvent" id="addForm">
+            <div class="mb-3">
+                <label for="addEventName" class="form-label">Event Name</label>
+                <input type="text" id="addEventName" name="Name" class="form-control" required />
+            </div>
+            <div class="mb-3">
+                <label for="addEventTags" class="form-label">Tags</label>
+                <select id="addTagDropdown" class="form-select" onchange="addNewTag()">
+                    <option value="" disabled selected>Select a tag</option>
+                    @foreach (var tag in allTags.OrderBy(t => t))
+                    {
+                        <option value="@tag">@tag</option>
+                    }
+                </select>
+                <div id="newSelectedTags" class="selected-tags"></div>
+            </div>
+            <input type="hidden" name="Tags" id="newTags" />
+            <button type="submit" class="btn btn-success">Add Event</button>
+            <button type="button" class="btn btn-secondary" onclick="closeAddPopup()">Cancel</button>
+        </form>
+    </div>
+</div>
+
+<style>
+    /* Event Cards and Layout */
+    .event-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .event-card {
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        padding: 1rem;
+        width: 250px;
+        text-align: center;
+    }
+
+    .tag-container {
+        margin-top: 0.5rem;
+        margin-bottom: 0.5rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        justify-content: center;
+    }
+
+    .tag {
+        background-color: #e0e0e0;
+        color: #333;
+        padding: 0.25rem 0.5rem;
+        border-radius: 15px;
+        font-size: 0.875rem;
+        border: 1px solid #bbb;
+        display: inline-block;
+    }
+
+    /* Popup Modal Styles */
+    .popup-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    }
+
+    .popup-content {
+        background: #fff;
+        padding: 1rem;
+        border-radius: 5px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        width: 400px;
+        max-width: 90%;
+    }
+
+    .form-select {
+        width: 100%;
+    }
+
+    .selected-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+    }
+
+    .tag-bubble {
+        background-color: #e0e0e0;
+        color: #333;
+        padding: 0.25rem 0.5rem;
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        font-size: 0.875rem;
+    }
+
+    .delete-tag {
+        margin-left: 0.5rem;
+        color: #ff0000;
+        cursor: pointer;
+    }
+</style>
+
+<script>
+    let currentTags = [];
+    let newTags = [];
+
+    function filterEvents() {
+        const searchQuery = document.getElementById("searchBar").value.toLowerCase();
+        const events = document.querySelectorAll(".event-card");
+
+        events.forEach(event => {
+            const eventName = event.querySelector("h3").textContent.toLowerCase();
+            event.style.display = eventName.includes(searchQuery) ? "block" : "none";
+        });
+    }
+
+    function filterByTag() {
+        const selectedTag = document.getElementById("filterDropdown").value.toLowerCase();
+        const events = document.querySelectorAll(".event-card");
+
+        events.forEach(event => {
+            const eventTags = event.querySelector(".tag-container").textContent.toLowerCase();
+            event.style.display = selectedTag === "" || eventTags.includes(selectedTag) ? "block" : "none";
+        });
+    }
+
+    function openEditPopup(eventId, eventName, eventTags) {
+        document.getElementById("editEventId").value = eventId;
+        document.getElementById("editEventName").value = eventName;
+
+        // Populate selected tags
+        const selectedTagsContainer = document.getElementById("selectedTags");
+        selectedTagsContainer.innerHTML = ""; // Clear existing tags
+        currentTags = eventTags.split(",").map(tag => tag.trim());
+        currentTags.forEach(tag => addTagBubble(tag, selectedTagsContainer));
+
+        document.getElementById("editPopup").style.display = "flex";
+    }
+
+    function closeEditPopup() {
+        document.getElementById("editPopup").style.display = "none";
+    }
+
+    function openAddPopup() {
+        document.getElementById("addPopup").style.display = "flex";
+        document.getElementById("newSelectedTags").innerHTML = ""; // Clear selected tags
+        newTags = [];
+    }
+
+    function closeAddPopup() {
+        document.getElementById("addPopup").style.display = "none";
+    }
+
+    function addTagBubble(tag, container) {
+        const tagBubble = document.createElement("span");
+        tagBubble.classList.add("tag-bubble");
+        tagBubble.textContent = tag;
+
+        const deleteIcon = document.createElement("span");
+        deleteIcon.classList.add("delete-tag");
+        deleteIcon.textContent = "×";
+        deleteIcon.onclick = () => removeTag(tag, tagBubble);
+
+        tagBubble.appendChild(deleteIcon);
+        container.appendChild(tagBubble);
+    }
+
+    function removeTag(tag, element) {
+        currentTags = currentTags.filter(t => t !== tag);
+        newTags = newTags.filter(t => t !== tag);
+        element.remove();
+    }
+
+    function addSelectedTag() {
+        const dropdown = document.getElementById("tagDropdown");
+        const selectedTag = dropdown.value;
+
+        if (selectedTag && !currentTags.includes(selectedTag)) {
+            currentTags.push(selectedTag);
+            addTagBubble(selectedTag, document.getElementById("selectedTags"));
+        }
+
+        dropdown.selectedIndex = 0; // Reset dropdown
+    }
+
+    function addNewTag() {
+        const dropdown = document.getElementById("addTagDropdown");
+        const selectedTag = dropdown.value;
+
+        if (selectedTag && !newTags.includes(selectedTag)) {
+            newTags.push(selectedTag);
+            addTagBubble(selectedTag, document.getElementById("newSelectedTags"));
+        }
+
+        dropdown.selectedIndex = 0; // Reset dropdown
+    }
+
+    document.getElementById("editForm").onsubmit = function () {
+        const hiddenTagsInput = document.createElement("input");
+        hiddenTagsInput.type = "hidden";
+        hiddenTagsInput.name = "Tags";
+        hiddenTagsInput.value = currentTags.join(",");
+        this.appendChild(hiddenTagsInput);
+    };
+
+    document.getElementById("addForm").onsubmit = function (e) {
+        // Ensure the hidden Tags input contains all selected tags
+        const hiddenTagsInput = document.getElementById("newTags");
+        hiddenTagsInput.value = newTags.join(",");
+    };
+</script>
