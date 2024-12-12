@@ -232,6 +232,31 @@ public class HomeController : Controller
         return View();
     }
 
+    [HttpPost]
+    public JsonResult AddPreference([FromBody] dynamic data)
+    {
+        int userId = data.userId;
+        string preferenceName = data.preferenceName;
+
+        try
+        {
+            var repository = new EventRepository();
+            var currentPreferences = repository.GetUserPreferences(userId);
+
+            if (!currentPreferences.Contains(preferenceName))
+            {
+                currentPreferences.Add(preferenceName);
+                repository.SaveUserPreferences(userId, currentPreferences);
+            }
+
+            return Json(new { success = true, preferences = currentPreferences });
+        }
+        catch (Exception ex)
+        {
+            return Json(new { success = false, error = ex.Message });
+        }
+    }
+
     public IActionResult ProfilePage()
     {
         if (!HttpContext.Session.TryGetValue("UserId", out _))
@@ -264,6 +289,7 @@ public class HomeController : Controller
 
         ViewBag.Preferences = user.preferences;
         ViewBag.AllPrefernces = AllTags;
+        ViewBag.UserID = userId;
         return View();
     }
 

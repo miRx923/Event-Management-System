@@ -4,7 +4,9 @@
     var email = ViewBag.Email ?? "example@example.com"; // Replace with dynamic email if available
     var tags = ViewBag.AllPrefernces as List<string> ??  new List<string>();
     var preferences = ViewBag.Preferences as List<string> ?? new List<string>(); // Fetch preferences as a list
+    var userID = ViewBag.UserID ?? 1;
 }
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -202,6 +204,34 @@
         </div>
     </div>
 
+    <script>
+    function addPreference(preferenceName) {
+
+        fetch('/Home/AddPreference', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ userId, preferenceName }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const preferencesList = document.getElementById('preferencesList');
+                const newPreference = document.createElement('span');
+                newPreference.innerText = preferenceName;
+                newPreference.classList.add('preference-tag'); // Add styles if necessary
+                preferencesList.appendChild(newPreference);
+            } else {
+                alert('Failed to add preference: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error adding preference:', error);
+        });
+    }
+    </script>
+
     <!-- Overlay -->
     <div id="overlay" class="overlay">
         <div class="overlay-content">
@@ -211,7 +241,7 @@
                 {
                     foreach (var tag in tags)
                     {
-                        <button class="btn">@tag</button>
+                        <button class="btn" onclick="addPreference('@tag')">@tag</button>
                     }
                 }
             </div>
