@@ -255,7 +255,6 @@ public class HomeController : Controller
             return RedirectToAction("Index"); // Redirect to the home page if user not found
         }
 
-        // Parse preferences into a list (handle null gracefully)
         ViewBag.Preferences = user.preferences;
         return View();
     }
