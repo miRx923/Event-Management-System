@@ -10,6 +10,8 @@ using Microsoft.AspNetCore.Http;
 using Org.BouncyCastle.Crypto.Generators;
 using Microsoft.AspNetCore.Identity;
 using BCrypt.Net;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.SqlServer.Server;
 
 
 public class HomeController : Controller
@@ -197,6 +199,7 @@ public class HomeController : Controller
         };
 
         ViewBag.Username = user.name;
+        ViewBag.Tags = user.preferences;
 
         var inputData = new
         {
@@ -226,6 +229,34 @@ public class HomeController : Controller
         ViewBag.Recommendations = recommendedEvents;
         ViewBag.MyEventIds = myEventIds;
 
+        return View();
+    }
+
+    public IActionResult ProfilePage()
+    {
+        var repository = new EventRepository();
+        int userId = HttpContext.Session.GetInt32("UserId").Value;
+        var userPreferences = repository.GetUserPreferences(userId);
+
+        var user = new
+        {
+            name = HttpContext.Session.GetString("Username"), // Get actual username
+            preferences = userPreferences
+        };
+
+        if (!HttpContext.Session.TryGetValue("UserId", out _))
+        {
+            return RedirectToAction("LoginPage"); // Redirect to login if the user is not logged in
+        }
+
+        if (user == null)
+        {
+            ViewBag.ErrorMessage = "User not found.";
+            return RedirectToAction("Index"); // Redirect to the home page if user not found
+        }
+
+        // Parse preferences into a list (handle null gracefully)
+        ViewBag.Preferences = user.preferences;
         return View();
     }
 

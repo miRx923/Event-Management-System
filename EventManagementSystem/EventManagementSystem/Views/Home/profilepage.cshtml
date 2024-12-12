@@ -1,7 +1,8 @@
 @{
     ViewData["Title"] = "User Profile";
-    var username = ViewBag.Username ?? "Guest"; // Use ViewBag to fetch the username
-    var email = "example@example.com"; // Replace with actual email or fetch dynamically
+    var username = ViewBag.Username ?? "Guest"; // Fetch username from ViewBag
+    var email = ViewBag.Email ?? "example@example.com"; // Replace with dynamic email if available
+    var preferences = ViewBag.Preferences as List<string> ?? new List<string>(); // Fetch preferences as a list
 }
 
 <!DOCTYPE html>
@@ -65,9 +66,7 @@
             padding: 20px;
             max-width: 600px;
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-            position: absolute;
-            top: 20px; /* 20px from the top */
-            left: 20px; /* 20px from the sidebar */
+            position: relative;
         }
         .profile-card h2 {
             font-size: 24px;
@@ -77,22 +76,24 @@
             font-size: 18px;
             margin: 0;
         }
-        .button-row {
+        .button-row, .additional-button-row {
             display: flex;
-            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
             margin-top: 20px;
         }
-        .button-row .btn {
-            flex: 1;
-            margin: 0 5px;
+        .btn {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            font-size: 14px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
         }
-        .additional-button-row {
-            display: flex;
-            margin-top: 10px;
-        }
-        .additional-button-row .btn {
-            flex: 1;
-            margin: 0 5px;
+        .btn:hover {
+            background-color: #0056b3;
         }
         /* Overlay Styles */
         .overlay {
@@ -116,28 +117,12 @@
             max-width: 800px;
             position: relative;
             text-align: center;
-            padding-bottom: 80px; /* Extra space for the close button */
         }
         .overlay-buttons {
             display: grid;
-            grid-template-columns: repeat(5, 1fr); /* 5 buttons per row */
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); /* Responsive grid */
             gap: 10px;
             margin-top: 20px;
-        }
-        .close-button {
-            position: absolute;
-            bottom: 20px;
-            right: 20px;
-            background-color: #ff6b6b;
-            border: none;
-            color: white;
-            padding: 10px 20px;
-            font-size: 16px;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        .close-button:hover {
-            background-color: #e74c3c;
         }
         .overlay-buttons .btn {
             background-color: #007bff;
@@ -151,6 +136,19 @@
         }
         .overlay-buttons .btn:hover {
             background-color: #0056b3;
+        }
+        .close-button {
+            margin-top: 20px;
+            background-color: #ff6b6b;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .close-button:hover {
+            background-color: #e74c3c;
         }
     </style>
     <script>
@@ -181,14 +179,21 @@
             <p><strong>Name:</strong> @username</p>
             <p><strong>Email:</strong> @email</p>
             
-            <!-- Four Buttons at the Bottom -->
+            <!-- Preferences Buttons -->
             <div class="button-row">
-                <button class="btn btn-secondary">Tag 1</button>
-                <button class="btn btn-secondary">Tag 2</button>
-                <button class="btn btn-secondary">Tag 3</button>
-                <button class="btn btn-secondary">Tag 4</button>
+                @if (preferences.Any())
+                {
+                    foreach (var preference in preferences)
+                    {
+                        <button class="btn">@preference</button>
+                    }
+                }
+                else
+                {
+                    <p>No preferences set.</p>
+                }
             </div>
-            
+
             <!-- Additional Button Row -->
             <div class="additional-button-row">
                 <button class="btn btn-secondary" onclick="openOverlay()">+</button>
@@ -199,18 +204,15 @@
     <!-- Overlay -->
     <div id="overlay" class="overlay">
         <div class="overlay-content">
-            <h2>Overlay Content</h2>
+            <h2>Select Preferences</h2>
             <div class="overlay-buttons">
-                <button class="btn">Tag 1</button>
-                <button class="btn">Tag 2</button>
-                <button class="btn">Tag 3</button>
-                <button class="btn">Tag 4</button>
-                <button class="btn">Tag 5</button>
-                <button class="btn">Tag 6</button>
-                <button class="btn">Tag 7</button>
-                <button class="btn">Tag 8</button>
-                <button class="btn">Tag 9</button>
-                <button class="btn">Tag 10</button>
+                @if (preferences.Any())
+                {
+                    foreach (var preference in preferences)
+                    {
+                        <button class="btn">@preference</button>
+                    }
+                }
             </div>
             <button class="close-button" onclick="closeOverlay()">Close</button>
         </div>
