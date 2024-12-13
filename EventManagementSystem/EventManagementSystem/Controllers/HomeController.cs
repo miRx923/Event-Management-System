@@ -296,7 +296,7 @@ public class HomeController : Controller
     [HttpPost]
     public JsonResult AddPreference([FromBody] dynamic data)
     {
-        int userId = data.userId;
+        int userId = data.userID;
         string preferenceName = data.preferenceName;
 
         try
@@ -321,7 +321,7 @@ public class HomeController : Controller
     [HttpPost]
     public JsonResult RemovePreference([FromBody] dynamic data)
     {
-        int userId = data.userId;
+        int userId = data.userID;
         string preferenceName = data.preferenceName;
 
         try
