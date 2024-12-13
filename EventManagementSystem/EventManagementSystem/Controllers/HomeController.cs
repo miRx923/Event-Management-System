@@ -293,6 +293,62 @@ public class HomeController : Controller
         return View();
     }
 
+    [HttpPost]
+    public JsonResult AddPreference([FromBody] dynamic data)
+    {
+        Console.WriteLine("Adding a preference");
+        int userId = data.userID;
+        string preferenceName = data.preferenceName;
+
+        try
+        {
+            var repository = new EventRepository();
+            var currentPreferences = repository.GetUserPreferences(userId);
+
+            if (!currentPreferences.Contains(preferenceName))
+            {
+                currentPreferences.Add(preferenceName);
+                repository.SaveUserPreferences(userId, currentPreferences);
+            }
+            Console.WriteLine("Preference added.");
+
+            return Json(new { success = true, preferences = currentPreferences });
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Preference not added.");
+            return Json(new { success = false, error = ex.Message });
+        }
+    }
+    
+    [HttpPost]
+    public JsonResult RemovePreference([FromBody] dynamic data)
+    {
+        Console.WriteLine("Removing a preference");
+        int userId = data.userID;
+        string preferenceName = data.preferenceName;
+
+        try
+        {
+            var repository = new EventRepository();
+            var currentPreferences = repository.GetUserPreferences(userId);
+
+            if (currentPreferences.Contains(preferenceName))
+            {
+                currentPreferences.Remove(preferenceName);
+                repository.SaveUserPreferences(userId, currentPreferences);
+            }
+
+            Console.WriteLine("Preference removed.");
+            return Json(new { success = true, preferences = currentPreferences });
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Preference not removed.");
+            return Json(new { success = false, error = ex.Message });
+        }
+    }
+
     public IActionResult ProfilePage()
     {
         if (!HttpContext.Session.TryGetValue("UserId", out _))
@@ -332,90 +388,6 @@ public class HomeController : Controller
         return View();
     }
 
-        [HttpPost]
-    public JsonResult AddPreference([FromBody] dynamic data)
-    {
-        int userId = data.userID;
-        string preferenceName = data.preferenceName;
-
-        try
-        {
-            var repository = new EventRepository();
-            var currentPreferences = repository.GetUserPreferences(userId);
-
-            if (!currentPreferences.Contains(preferenceName))
-            {
-                currentPreferences.Add(preferenceName);
-                repository.SaveUserPreferences(userId, currentPreferences);
-            }
-
-            return Json(new { success = true, preferences = currentPreferences });
-        }
-        catch (Exception ex)
-        {
-            return Json(new { success = false, error = ex.Message });
-        }
-    }
-    
-    [HttpPost]
-    public JsonResult RemovePreference([FromBody] dynamic data)
-    {
-        int userId = data.userID;
-        string preferenceName = data.preferenceName;
-
-        try
-        {
-            var repository = new EventRepository();
-            var currentPreferences = repository.GetUserPreferences(userId);
-
-            if (currentPreferences.Contains(preferenceName))
-            {
-                currentPreferences.Remove(preferenceName);
-                repository.SaveUserPreferences(userId, currentPreferences);
-            }
-
-            return Json(new { success = true, preferences = currentPreferences });
-        }
-        catch (Exception ex)
-        {
-            return Json(new { success = false, error = ex.Message });
-        }
-    }
-
-<<<<<<< HEAD
-=======
-
-    public IActionResult ProfilePage()
-    {
-        if (!HttpContext.Session.TryGetValue("UserId", out _))
-        {
-            ViewBag.ErrorMessage = "You need to log in to access the profile.";
-            return RedirectToAction("LoginPage"); // Redirect to login if not logged in
-        }
-
-        var repository = new EventRepository();
-        int userId = HttpContext.Session.GetInt32("UserId").Value;
-        var user = repository.GetUserByUsername(HttpContext.Session.GetString("Username"));
-
-        if (user == null)
-        {
-            ViewBag.ErrorMessage = "User not found.";
-            return RedirectToAction("Index"); // Redirect to the home page if user not found
-        }
-
-        var userPreferences = repository.GetUserPreferences(userId);
-        var allTags = repository.GetAllTags();
-
-        ViewBag.Username = user.Username; // Set the username
-        ViewBag.Email = user.Email; // Set the email
-        ViewBag.Preferences = userPreferences;
-        ViewBag.AllPrefernces = allTags;
-        ViewBag.UserID = userId;
-
-        return View();
-    }
-
->>>>>>> 6670484f8dd18a94d2cc4d4116f8d3335c6db4ff
     public IActionResult MyEvents()
     {
         if (!HttpContext.Session.TryGetValue("UserId", out _))

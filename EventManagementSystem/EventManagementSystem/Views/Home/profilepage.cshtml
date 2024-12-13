@@ -177,30 +177,28 @@
     
     <script>
         function removePreference(buttonElement, preferenceName) {
-            if (confirm("Are you sure you want to remove this preference?")) {
+            // Make an AJAX call to the server
+            fetch('/Home/RemovePreference', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ userID, preferenceName }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Remove the button from the DOM
+                    buttonElement.remove();
+                    console.log("Preference removed:", preferenceName);
+                } else {
+                    alert('Failed to remove preference: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error removing preference:', error);
+            });
 
-                // Make an AJAX call to the server
-                fetch('/Home/RemovePreference', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ userID, preferenceName }),
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        // Remove the button from the DOM
-                        buttonElement.remove();
-                        console.log("Preference removed:", preferenceName);
-                    } else {
-                        alert('Failed to remove preference: ' + data.error);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error removing preference:', error);
-                });
-            }
         }
     </script>
     <!-- Content -->
@@ -233,31 +231,32 @@
     </div>
 
     <script>
-    function addPreference(preferenceName) {
+        function addPreference(preferenceName) {
 
-        fetch('/Home/AddPreference', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ userId, preferenceName }),
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                const preferencesList = document.getElementById('preferencesList');
-                const newPreference = document.createElement('span');
-                newPreference.innerText = preferenceName;
-                newPreference.classList.add('preference-tag'); // Add styles if necessary
-                preferencesList.appendChild(newPreference);
-            } else {
-                alert('Failed to add preference: ' + data.error);
-            }
-        })
-        .catch(error => {
-            console.error('Error adding preference:', error);
-        });
-    }
+            Console.Writeline("add start")
+            fetch('/Home/AddPreference', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ userId, preferenceName }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const preferencesList = document.getElementById('preferencesList');
+                    const newPreference = document.createElement('span');
+                    newPreference.innerText = preferenceName;
+                    newPreference.classList.add('preference-tag'); // Add styles if necessary
+                    preferencesList.appendChild(newPreference);
+                } else {
+                    alert('Failed to add preference: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error adding preference:', error);
+            });
+        }
     </script>
     <!-- Overlay -->
     <div id="overlay" class="overlay">
