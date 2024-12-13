@@ -119,7 +119,7 @@ public class HomeController : Controller
         {
             HttpContext.Session.SetInt32("UserId", user.Id);
             HttpContext.Session.SetString("Username", user.Username);
-            HttpContext.Session.SetString("UserRole", user.Role); // Store user role
+            HttpContext.Session.SetString("UserRole", user.Role);
 
             return RedirectToAction("Index");
         }
@@ -293,7 +293,46 @@ public class HomeController : Controller
         return View();
     }
 
-    [HttpPost]
+    public IActionResult ProfilePage()
+    {
+        if (!HttpContext.Session.TryGetValue("UserId", out _))
+        {
+            ViewBag.ErrorMessage = "You need to log in to access profile.";
+            return View(); // Render the view with a message
+        }
+
+        Console.WriteLine(HttpContext.Session.Id);
+
+        var repository = new EventRepository();
+        int userId = HttpContext.Session.GetInt32("UserId").Value;
+        var userPreferences = repository.GetUserPreferences(userId); 
+        var AllTags = repository.GetAllTags();
+
+        var user = new
+        {
+            name = HttpContext.Session.GetString("Username"), // Get actual username
+            preferences = userPreferences
+        };
+
+        if (!HttpContext.Session.TryGetValue("UserId", out _))
+        {
+            return RedirectToAction("LoginPage"); // Redirect to login if the user is not logged in
+        }
+
+        if (user == null)
+        {
+            ViewBag.ErrorMessage = "User not found.";
+            return RedirectToAction("Index"); // Redirect to the home page if user not found
+        }
+
+        ViewBag.Preferences = user.preferences;
+        ViewBag.AllPrefernces = AllTags;
+        ViewBag.UserID = userId;
+        ViewBag.Username = user.name;
+        return View();
+    }
+
+        [HttpPost]
     public JsonResult AddPreference([FromBody] dynamic data)
     {
         int userId = data.userID;
@@ -341,43 +380,6 @@ public class HomeController : Controller
         {
             return Json(new { success = false, error = ex.Message });
         }
-    }
-
-
-    public IActionResult ProfilePage()
-    {
-        if (!HttpContext.Session.TryGetValue("UserId", out _))
-        {
-            ViewBag.ErrorMessage = "You need to log in to access recommendations.";
-            return View(); // Render the view with a message
-        }
-
-        var repository = new EventRepository();
-        int userId = HttpContext.Session.GetInt32("UserId").Value;
-        var userPreferences = repository.GetUserPreferences(userId);
-        var AllTags = repository.GetAllTags();
-
-        var user = new
-        {
-            name = HttpContext.Session.GetString("Username"), // Get actual username
-            preferences = userPreferences
-        };
-
-        if (!HttpContext.Session.TryGetValue("UserId", out _))
-        {
-            return RedirectToAction("LoginPage"); // Redirect to login if the user is not logged in
-        }
-
-        if (user == null)
-        {
-            ViewBag.ErrorMessage = "User not found.";
-            return RedirectToAction("Index"); // Redirect to the home page if user not found
-        }
-
-        ViewBag.Preferences = user.preferences;
-        ViewBag.AllPrefernces = AllTags;
-        ViewBag.UserID = userId;
-        return View();
     }
 
     public IActionResult MyEvents()
