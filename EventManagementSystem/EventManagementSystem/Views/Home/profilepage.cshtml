@@ -1,6 +1,6 @@
 @{
     ViewData["Title"] = "User Profile";
-    var username = ViewBag.Username ?? "Guest"; // Fetch username from ViewBag
+    var username = ViewBag.Username as string ?? "Guest";
     var email = ViewBag.Email ?? "example@example.com"; // Replace with dynamic email if available
     var tags = ViewBag.AllPrefernces as List<string> ??  new List<string>();
     var preferences = ViewBag.Preferences as List<string> ?? new List<string>(); // Fetch preferences as a list

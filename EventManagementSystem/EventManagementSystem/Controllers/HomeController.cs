@@ -382,6 +382,40 @@ public class HomeController : Controller
         }
     }
 
+<<<<<<< HEAD
+=======
+
+    public IActionResult ProfilePage()
+    {
+        if (!HttpContext.Session.TryGetValue("UserId", out _))
+        {
+            ViewBag.ErrorMessage = "You need to log in to access the profile.";
+            return RedirectToAction("LoginPage"); // Redirect to login if not logged in
+        }
+
+        var repository = new EventRepository();
+        int userId = HttpContext.Session.GetInt32("UserId").Value;
+        var user = repository.GetUserByUsername(HttpContext.Session.GetString("Username"));
+
+        if (user == null)
+        {
+            ViewBag.ErrorMessage = "User not found.";
+            return RedirectToAction("Index"); // Redirect to the home page if user not found
+        }
+
+        var userPreferences = repository.GetUserPreferences(userId);
+        var allTags = repository.GetAllTags();
+
+        ViewBag.Username = user.Username; // Set the username
+        ViewBag.Email = user.Email; // Set the email
+        ViewBag.Preferences = userPreferences;
+        ViewBag.AllPrefernces = allTags;
+        ViewBag.UserID = userId;
+
+        return View();
+    }
+
+>>>>>>> 6670484f8dd18a94d2cc4d4116f8d3335c6db4ff
     public IActionResult MyEvents()
     {
         if (!HttpContext.Session.TryGetValue("UserId", out _))
