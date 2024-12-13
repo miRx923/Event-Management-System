@@ -348,25 +348,13 @@ public class HomeController : Controller
     {
         if (!HttpContext.Session.TryGetValue("UserId", out _))
         {
-            ViewBag.ErrorMessage = "You need to log in to access recommendations.";
-            return View(); // Render the view with a message
+            ViewBag.ErrorMessage = "You need to log in to access the profile.";
+            return RedirectToAction("LoginPage"); // Redirect to login if not logged in
         }
 
         var repository = new EventRepository();
         int userId = HttpContext.Session.GetInt32("UserId").Value;
-        var userPreferences = repository.GetUserPreferences(userId);
-        var AllTags = repository.GetAllTags();
-
-        var user = new
-        {
-            name = HttpContext.Session.GetString("Username"), // Get actual username
-            preferences = userPreferences
-        };
-
-        if (!HttpContext.Session.TryGetValue("UserId", out _))
-        {
-            return RedirectToAction("LoginPage"); // Redirect to login if the user is not logged in
-        }
+        var user = repository.GetUserByUsername(HttpContext.Session.GetString("Username"));
 
         if (user == null)
         {
@@ -374,9 +362,15 @@ public class HomeController : Controller
             return RedirectToAction("Index"); // Redirect to the home page if user not found
         }
 
-        ViewBag.Preferences = user.preferences;
-        ViewBag.AllPrefernces = AllTags;
+        var userPreferences = repository.GetUserPreferences(userId);
+        var allTags = repository.GetAllTags();
+
+        ViewBag.Username = user.Username; // Set the username
+        ViewBag.Email = user.Email; // Set the email
+        ViewBag.Preferences = userPreferences;
+        ViewBag.AllPrefernces = allTags;
         ViewBag.UserID = userId;
+
         return View();
     }
 
