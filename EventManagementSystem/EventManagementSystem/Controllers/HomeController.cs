@@ -256,6 +256,32 @@ public class HomeController : Controller
             return Json(new { success = false, error = ex.Message });
         }
     }
+    
+    [HttpPost]
+    public JsonResult RemovePreference([FromBody] dynamic data)
+    {
+        int userId = data.userId;
+        string preferenceName = data.preferenceName;
+
+        try
+        {
+            var repository = new EventRepository();
+            var currentPreferences = repository.GetUserPreferences(userId);
+
+            if (currentPreferences.Contains(preferenceName))
+            {
+                currentPreferences.Remove(preferenceName);
+                repository.SaveUserPreferences(userId, currentPreferences);
+            }
+
+            return Json(new { success = true, preferences = currentPreferences });
+        }
+        catch (Exception ex)
+        {
+            return Json(new { success = false, error = ex.Message });
+        }
+    }
+
 
     public IActionResult ProfilePage()
     {
