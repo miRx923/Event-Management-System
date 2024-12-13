@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Views\Home\loginpage.cshtml.cs" />
+    <Compile Remove="Views\Home\.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -15,10 +15,6 @@
     <PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.2" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="Portable.BouncyCastle" Version="1.9.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Page Include="Views\Home\LoginPage.cshtml.cs" />
   </ItemGroup>
 
 </Project>
